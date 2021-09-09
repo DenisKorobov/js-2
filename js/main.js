@@ -4,14 +4,14 @@ class ProductList {
   #goods;
   #allProducts;
 
-  constructor(container = '.products') {
+  constructor(container = '.products', basket) {
     this.container = container;
     this.#goods = [];
     this.#allProducts = [];
 
     this.#fetchGoods();
     this.#render();
-    this.#addToBasket();
+    this.#addToBasket(basket);
   }
 
   #fetchGoods() {
@@ -34,15 +34,15 @@ class ProductList {
     }
   }
 
-  #addToBasket() {
-    const buttons = document.querySelectorAll('.buy-btn');
-    const _this = this;
-    buttons.forEach(button => {
-      button.addEventListener('click', function () {
-        const id = this.parentNode.parentNode.getAttribute('data-id');
-        basket.items.push(_this.#goods[id - 1]);
-        basket.render();
-      });
+  #addToBasket(basketObject) {
+    const block = document.querySelector(this.container);
+
+    block.addEventListener('click', event => {
+      let target = event.target;
+      if (target.tagName != 'BUTTON') return;
+      const id = target.parentNode.parentNode.getAttribute('data-id');
+      basketObject.items.push(this.#goods[id - 1]);
+      basketObject.render();
     });
   }
 }
@@ -67,8 +67,6 @@ class ProductItem {
   }
 }
 
-const list = new ProductList();
-
 
 
 /*** Basket begin ***/
@@ -87,16 +85,20 @@ class BasketList {
       block.insertAdjacentHTML('beforeend', productObject.render());
     }
 
-    this.sum();
+    this.renderSum();
   }
 
-  sum() {
+  getSum() {
     let sum = 0;
-    const block = document.querySelector(this.container);
     for (let product of this.items) {
       sum += product.price;
     }
-    block.insertAdjacentHTML('beforeend', '<b>Итого:' + sum + '</b>');
+    return sum;
+  }
+
+  renderSum() {
+    const block = document.querySelector(this.container);
+    block.insertAdjacentHTML('beforeend', '<b>Итого:' + this.getSum() + '</b>');
   }
 }
 
@@ -111,7 +113,8 @@ class BasketItem {
   }
 }
 
-const basket = new BasketList();
+const basketBlock = new BasketList();
+const page = new ProductList('.products', basketBlock);
 
 /*** Basket end  ***/
 
