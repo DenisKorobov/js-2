@@ -1,4 +1,29 @@
-/*** Добавил метод addToBasket - добавление товара в корзину. Также сделал вывод товаров корзины и подсчет их суммарной стоимости. ***/
+const API = 'https://raw.githubusercontent.com/GeekBrainsTutorial/online-store-api/master/responses';
+
+/*** Task №1 begin ***/
+
+let getRequest = url => {
+  return new Promise((resolve, reject) => {
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status !== 200) {
+          reject('Error!');
+        } else {
+          resolve(xhr.responseText);
+        }
+      }
+    }
+    xhr.send();
+  });
+}
+
+getRequest(`${API}/catalogData.json`)
+  .then(data => console.log(data))
+  .catch(err => console.log(err + '!!'));
+
+/*** Task №1 end ***/
 
 class ProductList {
   #goods;
@@ -9,18 +34,22 @@ class ProductList {
     this.#goods = [];
     this.#allProducts = [];
 
-    this.#fetchGoods();
-    this.#render();
+    this.#fetchGoods().then((data) => {
+      this.#goods = data;
+      this.#render();
+    });
+
     this.#addToBasket(basket);
   }
 
   #fetchGoods() {
-    this.#goods = [
-      { id: 1, title: 'Notebook', price: 20000 },
-      { id: 2, title: 'Mouse', price: 1500 },
-      { id: 3, title: 'Keyboard', price: 5000 },
-      { id: 4, title: 'Gamepad', price: 4500 },
-    ];
+    return fetch(`${API}/catalogData.json`)
+      .then(response => response.json())
+      .catch((err) => console.log(err));
+  }
+
+  sum() {
+    return this.#allProducts.reduce((sum, { price }) => sum + price, 0);
   }
 
   #render() {
@@ -41,7 +70,7 @@ class ProductList {
       let target = event.target;
       if (target.tagName != 'BUTTON') return;
       const id = target.parentNode.parentNode.getAttribute('data-id');
-      basketObject.items.push(this.#goods[id - 1]);
+      basketObject.items.push(this.#allProducts.find(element => element.id == id));
       basketObject.render();
     });
   }
@@ -49,9 +78,9 @@ class ProductList {
 
 class ProductItem {
   constructor(product, img = 'https://via.placeholder.com/200x150') {
-    this.title = product.title;
+    this.title = product.product_name;
     this.price = product.price;
-    this.id = product.id;
+    this.id = product.id_product;
     this.img = img;
   }
 
@@ -66,8 +95,6 @@ class ProductItem {
           </div>`;
   }
 }
-
-
 
 /*** Basket begin ***/
 
@@ -106,6 +133,7 @@ class BasketItem {
   constructor(product) {
     this.title = product.title;
     this.price = product.price;
+    this.id = product.id;
   }
 
   render() {
@@ -117,31 +145,3 @@ const basketBlock = new BasketList();
 const page = new ProductList('.products', basketBlock);
 
 /*** Basket end  ***/
-
-
-
-/*
-
-const products = [
-  { id: 1, title: 'Notebook', price: 1000 },
-  { id: 2, title: 'Mouse', price: 100 },
-  { id: 3, title: 'Keyboard', price: 250 },
-  { id: 4, title: 'Gamepad', price: 150 },
-  { id: 5 },
-];
-
-const renderProduct = (title = 'Товар', price = 0) =>
-  `<div class="product-item">
-    <h3>${title}</h3>
-    <p>${price}</p>
-    <button class="by-btn">Добавить</button>
-  </div>`;
-
-const renderProducts = list => {
-  const productList = list.map(item => renderProduct(item.title, item.price));
-  document.querySelector('.products').innerHTML = productList.join('');
-};
-
-renderProducts(products);
-
-*/
