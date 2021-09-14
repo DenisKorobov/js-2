@@ -39,6 +39,7 @@ class ProductList {
       this.#render();
     });
 
+    basket.render();
     this.#addToBasket(basket);
   }
 
@@ -102,6 +103,8 @@ class BasketList {
   constructor(container = '.basket') {
     this.container = container;
     this.items = [];
+
+    this.deleteFromBasket();
   }
 
   render() {
@@ -127,6 +130,19 @@ class BasketList {
     const block = document.querySelector(this.container);
     block.insertAdjacentHTML('beforeend', '<b>Итого:' + this.getSum() + '</b>');
   }
+
+  deleteFromBasket() {
+    const block = document.querySelector(this.container);
+
+    block.addEventListener('click', event => {
+      let target = event.target;
+      if (target.tagName != 'BUTTON') return;
+      const id = target.parentNode.getAttribute('data-id');
+      const index = this.items.findIndex(element => element.id == id);
+      this.items.splice(index, 1);
+      this.render();
+    });
+  }
 }
 
 class BasketItem {
@@ -137,7 +153,7 @@ class BasketItem {
   }
 
   render() {
-    return `<div class="basket-item">${this.title} ${this.price}</div>`;
+    return `<div class="basket-item" data-id="${this.id}">${this.title} ${this.price} <button>Удалить</button></div>`;
   }
 }
 
